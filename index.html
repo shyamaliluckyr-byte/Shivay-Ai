@@ -1,431 +1,1469 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SHIVAY AI - Your Intelligent Future Companion</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500&display=swap" rel="stylesheet">
-  <style>
-    /* Futuristic Fonts and Base Styles */
-    body {
-      margin: 0;
-      font-family: 'Rajdhani', sans-serif;
-      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a40 50%, #000 100%);
-      color: white;
-      overflow-x: hidden;
-      animation: backgroundGlow 10s ease-in-out infinite alternate;
+
+const ComponentFunction = function() {
+  // @section:imports @depends:[]
+  const React = require('react');
+  const { useState, useEffect, useContext, useMemo, useCallback } = React;
+  const { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, FlatList, Animated, Dimensions } = require('react-native');
+  const { MaterialIcons } = require('@expo/vector-icons');
+  const { createBottomTabNavigator } = require('@react-navigation/bottom-tabs');
+  // @end:imports
+
+  // @section:theme @depends:[]
+  const storageStrategy = 'local';
+  const primaryColor = '#00D9FF';
+  const accentColor = '#8B5CF6';
+  const backgroundColor = '#0A0A0F';
+  const cardColor = 'rgba(255, 255, 255, 0.1)';
+  const textPrimary = '#FFFFFF';
+  const textSecondary = '#B0B0B0';
+  const designStyle = 'glassmorphic';
+  // @end:theme
+
+  // @section:navigation-setup @depends:[]
+  const Tab = createBottomTabNavigator();
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  // @end:navigation-setup
+
+  // @section:ThemeContext @depends:[theme]
+  const ThemeContext = React.createContext();
+  const ThemeProvider = function(props) {
+    const darkModeState = useState(false);
+    const darkMode = darkModeState[0];
+    const setDarkMode = darkModeState[1];
+    
+    const lightTheme = useMemo(function() {
+      return {
+        colors: {
+          primary: primaryColor,
+          accent: accentColor,
+          background: backgroundColor,
+          card: cardColor,
+          textPrimary: textPrimary,
+          textSecondary: textSecondary,
+          border: 'rgba(0, 217, 255, 0.3)',
+          success: '#10B981',
+          error: '#EF4444',
+          warning: '#F59E0B'
+        }
+      };
+    }, []);
+    
+    const darkTheme = useMemo(function() {
+      return {
+        colors: {
+          primary: primaryColor,
+          accent: accentColor,
+          background: '#000000',
+          card: 'rgba(255, 255, 255, 0.05)',
+          textPrimary: textPrimary,
+          textSecondary: textSecondary,
+          border: 'rgba(0, 217, 255, 0.2)',
+          success: '#10B981',
+          error: '#EF4444',
+          warning: '#F59E0B'
+        }
+      };
+    }, []);
+    
+    const theme = darkMode ? darkTheme : lightTheme;
+    
+    const toggleDarkMode = useCallback(function() {
+      setDarkMode(function(prev) { return !prev; });
+    }, []);
+    
+    const value = useMemo(function() {
+      return { theme: theme, darkMode: darkMode, toggleDarkMode: toggleDarkMode, designStyle: designStyle };
+    }, [theme, darkMode, toggleDarkMode]);
+    
+    return React.createElement(ThemeContext.Provider, { value: value }, props.children);
+  };
+  
+  const useTheme = function() { 
+    return useContext(ThemeContext); 
+  };
+  // @end:ThemeContext
+
+  // @section:ChatScreen-state @depends:[ThemeContext]
+  const useChatScreenState = function() {
+    const themeContext = useTheme();
+    const theme = themeContext.theme;
+    const messagesState = useState([
+      { id: '1', text: 'Welcome to SHIVAY! I am your intelligent virtual assistant. How can I help you today?', sender: 'ai', timestamp: new Date().toISOString() }
+    ]);
+    const messages = messagesState[0];
+    const setMessages = messagesState[1];
+    const inputTextState = useState('');
+    const inputText = inputTextState[0];
+    const setInputText = inputTextState[1];
+    const isTypingState = useState(false);
+    const isTyping = isTypingState[0];
+    const setIsTyping = isTypingState[1];
+    
+    return {
+      theme: theme,
+      messages: messages,
+      setMessages: setMessages,
+      inputText: inputText,
+      setInputText: setInputText,
+      isTyping: isTyping,
+      setIsTyping: setIsTyping
+    };
+  };
+  // @end:ChatScreen-state
+
+  // @section:ChatScreen-handlers @depends:[ChatScreen-state]
+  const chatScreenHandlers = {
+    sendMessage: function(state, text) {
+      if (!text.trim()) return;
+      
+      const userMessage = {
+        id: Date.now().toString(),
+        text: text,
+        sender: 'user',
+        timestamp: new Date().toISOString()
+      };
+      
+      state.setMessages(function(prev) {
+        return prev.concat([userMessage]);
+      });
+      
+      state.setInputText('');
+      state.setIsTyping(true);
+      
+      setTimeout(function() {
+        const aiResponse = {
+          id: (Date.now() + 1).toString(),
+          text: 'I understand your question: "' + text + '". As SHIVAY, I would provide intelligent context-aware responses here. This is a demonstration of the futuristic AI interface.',
+          sender: 'ai',
+          timestamp: new Date().toISOString()
+        };
+        
+        state.setMessages(function(prev) {
+          return prev.concat([aiResponse]);
+        });
+        state.setIsTyping(false);
+      }, 2000);
     }
+  };
+  // @end:ChatScreen-handlers
 
-    @keyframes backgroundGlow {
-      0% { background: linear-gradient(135deg, #0a0a0f 0%, #1a1a40 50%, #000 100%); }
-      100% { background: linear-gradient(135deg, #0a0a0f 0%, #2a2a60 50%, #000 100%); }
+  // @section:ChatScreen-MessageBubble @depends:[styles]
+  const renderMessageBubble = function(message, theme) {
+    const isUser = message.sender === 'user';
+    const bubbleStyle = isUser ? 
+      [styles.messageBubble, styles.userBubble, { backgroundColor: theme.colors.primary + '40' }] :
+      [styles.messageBubble, styles.aiBubble, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }];
+    
+    return React.createElement(View, {
+      key: message.id,
+      style: [styles.messageContainer, isUser ? styles.userMessageContainer : styles.aiMessageContainer],
+      componentId: 'chat-message-' + message.id
+    },
+      React.createElement(View, { style: bubbleStyle, componentId: 'chat-bubble-' + message.id },
+        React.createElement(Text, { 
+          style: [styles.messageText, { color: theme.colors.textPrimary }], 
+          componentId: 'chat-text-' + message.id 
+        }, message.text),
+        React.createElement(Text, { 
+          style: [styles.timestampText, { color: theme.colors.textSecondary }], 
+          componentId: 'chat-timestamp-' + message.id 
+        }, new Date(message.timestamp).toLocaleTimeString())
+      )
+    );
+  };
+  // @end:ChatScreen-MessageBubble
+
+  // @section:ChatScreen @depends:[ChatScreen-state,ChatScreen-handlers,ChatScreen-MessageBubble,styles]
+  const ChatScreen = function() {
+    const state = useChatScreenState();
+    const handlers = chatScreenHandlers;
+    
+    return React.createElement(KeyboardAvoidingView, {
+      style: { flex: 1 },
+      behavior: Platform.OS === 'ios' ? 'padding' : (Platform.OS === 'web' ? undefined : 'height'),
+      componentId: 'chat-keyboard-avoiding'
+    },
+      React.createElement(View, { 
+        style: [styles.screenContainer, { backgroundColor: state.theme.colors.background }], 
+        componentId: 'chat-screen' 
+      },
+        React.createElement(View, { style: styles.chatHeader, componentId: 'chat-header' },
+          React.createElement(Text, { 
+            style: [styles.screenTitle, { color: state.theme.colors.textPrimary }], 
+            componentId: 'chat-title' 
+          }, 'Chat with SHIVAY'),
+          React.createElement(View, { style: styles.aiIndicator, componentId: 'chat-ai-indicator' },
+            React.createElement(View, { 
+              style: [styles.aiDot, { backgroundColor: state.theme.colors.primary }], 
+              componentId: 'chat-ai-dot' 
+            }),
+            React.createElement(Text, { 
+              style: [styles.aiText, { color: state.theme.colors.primary }], 
+              componentId: 'chat-ai-text' 
+            }, 'AI Online')
+          )
+        ),
+        React.createElement(FlatList, {
+          data: state.messages,
+          keyExtractor: function(item) { return item.id; },
+          renderItem: function(itemData) { 
+            return renderMessageBubble(itemData.item, state.theme); 
+          },
+          style: styles.chatList,
+          contentContainerStyle: { paddingBottom: 20 },
+          componentId: 'chat-messages-list'
+        }),
+        state.isTyping ? React.createElement(View, { 
+          style: [styles.typingIndicator, { backgroundColor: state.theme.colors.card }], 
+          componentId: 'chat-typing' 
+        },
+          React.createElement(Text, { 
+            style: [styles.typingText, { color: state.theme.colors.textSecondary }], 
+            componentId: 'chat-typing-text' 
+          }, 'SHIVAY is thinking...'),
+          React.createElement(ActivityIndicator, { 
+            size: 'small', 
+            color: state.theme.colors.primary, 
+            componentId: 'chat-typing-loader' 
+          })
+        ) : null,
+        React.createElement(View, { 
+          style: [styles.chatInputContainer, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+          componentId: 'chat-input-container' 
+        },
+          React.createElement(TextInput, {
+            style: [styles.chatInput, { color: state.theme.colors.textPrimary }],
+            placeholder: 'Ask SHIVAY anything...',
+            placeholderTextColor: state.theme.colors.textSecondary,
+            value: state.inputText,
+            onChangeText: state.setInputText,
+            multiline: true,
+            componentId: 'chat-input'
+          }),
+          React.createElement(TouchableOpacity, {
+            style: [styles.sendButton, { backgroundColor: state.theme.colors.primary }],
+            onPress: function() { handlers.sendMessage(state, state.inputText); },
+            componentId: 'chat-send-button'
+          },
+            React.createElement(MaterialIcons, { 
+              name: 'send', 
+              size: 20, 
+              color: '#FFFFFF' 
+            })
+          )
+        )
+      )
+    );
+  };
+  // @end:ChatScreen
+
+  // @section:ImagesScreen-state @depends:[ThemeContext]
+  const useImagesScreenState = function() {
+    const themeContext = useTheme();
+    const theme = themeContext.theme;
+    const promptState = useState('');
+    const prompt = promptState[0];
+    const setPrompt = promptState[1];
+    const isGeneratingState = useState(false);
+    const isGenerating = isGeneratingState[0];
+    const setIsGenerating = isGeneratingState[1];
+    const generatedImagesState = useState([]);
+    const generatedImages = generatedImagesState[0];
+    const setGeneratedImages = generatedImagesState[1];
+    
+    return {
+      theme: theme,
+      prompt: prompt,
+      setPrompt: setPrompt,
+      isGenerating: isGenerating,
+      setIsGenerating: setIsGenerating,
+      generatedImages: generatedImages,
+      setGeneratedImages: setGeneratedImages
+    };
+  };
+  // @end:ImagesScreen-state
+
+  // @section:ImagesScreen-handlers @depends:[ImagesScreen-state]
+  const imagesScreenHandlers = {
+    generateImage: function(state) {
+      if (!state.prompt.trim()) {
+        Platform.OS === 'web' ? window.alert('Please enter a prompt') : Alert.alert('Error', 'Please enter a prompt');
+        return;
+      }
+      
+      state.setIsGenerating(true);
+      
+      setTimeout(function() {
+        const newImage = {
+          id: Date.now().toString(),
+          prompt: state.prompt,
+          uri: 'IMAGE:futuristic-ai-generated-digital-art',
+          timestamp: new Date().toISOString()
+        };
+        
+        state.setGeneratedImages(function(prev) {
+          return [newImage].concat(prev);
+        });
+        
+        state.setPrompt('');
+        state.setIsGenerating(false);
+        
+        Platform.OS === 'web' ? window.alert('Image generated successfully!') : Alert.alert('Success', 'Image generated successfully!');
+      }, 3000);
     }
+  };
+  // @end:ImagesScreen-handlers
 
-    /* Header */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 40px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(108, 204, 255, 0.3);
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 100;
+  // @section:ImagesScreen @depends:[ImagesScreen-state,ImagesScreen-handlers,styles]
+  const ImagesScreen = function() {
+    const state = useImagesScreenState();
+    const handlers = imagesScreenHandlers;
+    
+    return React.createElement(ScrollView, {
+      style: [styles.screenContainer, { backgroundColor: state.theme.colors.background }],
+      contentContainerStyle: { paddingBottom: Platform.OS === 'web' ? 90 : 100 },
+      componentId: 'images-screen'
+    },
+      React.createElement(View, { style: styles.screenHeader, componentId: 'images-header' },
+        React.createElement(Text, { 
+          style: [styles.screenTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'images-title' 
+        }, 'AI Image Generator'),
+        React.createElement(Text, { 
+          style: [styles.screenSubtitle, { color: state.theme.colors.textSecondary }], 
+          componentId: 'images-subtitle' 
+        }, 'Create stunning visuals with AI')
+      ),
+      React.createElement(View, { 
+        style: [styles.generatorCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+        componentId: 'images-generator-card' 
+      },
+        React.createElement(TextInput, {
+          style: [styles.promptInput, { color: state.theme.colors.textPrimary, borderColor: state.theme.colors.border }],
+          placeholder: 'Describe the image you want to create...',
+          placeholderTextColor: state.theme.colors.textSecondary,
+          value: state.prompt,
+          onChangeText: state.setPrompt,
+          multiline: true,
+          numberOfLines: 4,
+          componentId: 'images-prompt-input'
+        }),
+        React.createElement(TouchableOpacity, {
+          style: [styles.generateButton, { backgroundColor: state.theme.colors.primary }],
+          onPress: function() { handlers.generateImage(state); },
+          disabled: state.isGenerating,
+          componentId: 'images-generate-button'
+        },
+          state.isGenerating ? 
+            React.createElement(ActivityIndicator, { size: 'small', color: '#FFFFFF', componentId: 'images-loading' }) :
+            React.createElement(Text, { style: styles.generateButtonText, componentId: 'images-generate-text' }, 'Generate Image')
+        )
+      ),
+      state.generatedImages.length > 0 ? React.createElement(View, { style: styles.gallerySection, componentId: 'images-gallery' },
+        React.createElement(Text, { 
+          style: [styles.sectionTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'images-gallery-title' 
+        }, 'Generated Images'),
+        state.generatedImages.map(function(image) {
+          return React.createElement(View, {
+            key: image.id,
+            style: [styles.imageCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }],
+            componentId: 'image-card-' + image.id
+          },
+            React.createElement(Image, {
+              source: { uri: image.uri },
+              style: styles.generatedImage,
+              componentId: 'generated-image-' + image.id
+            }),
+            React.createElement(Text, { 
+              style: [styles.imagePrompt, { color: state.theme.colors.textSecondary }], 
+              componentId: 'image-prompt-' + image.id 
+            }, image.prompt),
+            React.createElement(Text, { 
+              style: [styles.imageTimestamp, { color: state.theme.colors.textSecondary }], 
+              componentId: 'image-timestamp-' + image.id 
+            }, new Date(image.timestamp).toLocaleString())
+          );
+        })
+      ) : null
+    );
+  };
+  // @end:ImagesScreen
+
+  // @section:LyricsScreen-state @depends:[ThemeContext]
+  const useLyricsScreenState = function() {
+    const themeContext = useTheme();
+    const theme = themeContext.theme;
+    const themeState = useState('');
+    const themeInput = themeState[0];
+    const setThemeInput = themeState[1];
+    const moodState = useState('happy');
+    const mood = moodState[0];
+    const setMood = moodState[1];
+    const isGeneratingState = useState(false);
+    const isGenerating = isGeneratingState[0];
+    const setIsGenerating = isGeneratingState[1];
+    const generatedLyricsState = useState([]);
+    const generatedLyrics = generatedLyricsState[0];
+    const setGeneratedLyrics = generatedLyricsState[1];
+    
+    return {
+      theme: theme,
+      themeInput: themeInput,
+      setThemeInput: setThemeInput,
+      mood: mood,
+      setMood: setMood,
+      isGenerating: isGenerating,
+      setIsGenerating: setIsGenerating,
+      generatedLyrics: generatedLyrics,
+      setGeneratedLyrics: setGeneratedLyrics
+    };
+  };
+  // @end:LyricsScreen-state
+
+  // @section:LyricsScreen-handlers @depends:[LyricsScreen-state]
+  const lyricsScreenHandlers = {
+    generateLyrics: function(state) {
+      if (!state.themeInput.trim()) {
+        Platform.OS === 'web' ? window.alert('Please enter a theme') : Alert.alert('Error', 'Please enter a theme');
+        return;
+      }
+      
+      state.setIsGenerating(true);
+      
+      setTimeout(function() {
+        const sampleLyrics = 'In the digital realm where dreams collide\n' +
+          'SHIVAY guides us through the cosmic tide\n' +
+          'Artificial minds and human hearts\n' +
+          'Creating magic, where the future starts\n\n' +
+          '[Chorus]\n' +
+          'We are the dreamers of tomorrow\n' +
+          'Dancing with AI in the glow\n' +
+          'Technology and soul combined\n' +
+          'In this ' + state.mood + ' state of mind\n\n' +
+          '[Verse 2]\n' +
+          'Theme: ' + state.themeInput + '\n' +
+          'Generated with love by SHIVAY AI\n' +
+          'Paste into Suno for your melody';
+        
+        const newLyrics = {
+          id: Date.now().toString(),
+          theme: state.themeInput,
+          mood: state.mood,
+          content: sampleLyrics,
+          timestamp: new Date().toISOString()
+        };
+        
+        state.setGeneratedLyrics(function(prev) {
+          return [newLyrics].concat(prev);
+        });
+        
+        state.setThemeInput('');
+        state.setIsGenerating(false);
+        
+        Platform.OS === 'web' ? window.alert('Lyrics generated successfully!') : Alert.alert('Success', 'Lyrics generated successfully!');
+      }, 2500);
     }
+  };
+  // @end:LyricsScreen-handlers
 
-    .logo {
-      font-family: 'Orbitron', monospace;
-      font-size: 28px;
-      color: #6cf;
-      text-shadow: 0 0 20px #6cf, 0 0 40px #6cf;
-      animation: neonPulse 2s ease-in-out infinite alternate;
-    }
+  // @section:LyricsScreen @depends:[LyricsScreen-state,LyricsScreen-handlers,styles]
+  const LyricsScreen = function() {
+    const state = useLyricsScreenState();
+    const handlers = lyricsScreenHandlers;
+    const moods = ['happy', 'sad', 'energetic', 'romantic', 'mysterious', 'epic'];
+    
+    return React.createElement(ScrollView, {
+      style: [styles.screenContainer, { backgroundColor: state.theme.colors.background }],
+      contentContainerStyle: { paddingBottom: Platform.OS === 'web' ? 90 : 100 },
+      componentId: 'lyrics-screen'
+    },
+      React.createElement(View, { style: styles.screenHeader, componentId: 'lyrics-header' },
+        React.createElement(Text, { 
+          style: [styles.screenTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'lyrics-title' 
+        }, 'AI Lyrics Generator'),
+        React.createElement(Text, { 
+          style: [styles.screenSubtitle, { color: state.theme.colors.textSecondary }], 
+          componentId: 'lyrics-subtitle' 
+        }, 'Create original song lyrics')
+      ),
+      React.createElement(View, { 
+        style: [styles.generatorCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+        componentId: 'lyrics-generator-card' 
+      },
+        React.createElement(TextInput, {
+          style: [styles.promptInput, { color: state.theme.colors.textPrimary, borderColor: state.theme.colors.border }],
+          placeholder: 'Enter your song theme or topic...',
+          placeholderTextColor: state.theme.colors.textSecondary,
+          value: state.themeInput,
+          onChangeText: state.setThemeInput,
+          multiline: true,
+          numberOfLines: 3,
+          componentId: 'lyrics-theme-input'
+        }),
+        React.createElement(Text, { 
+          style: [styles.inputLabel, { color: state.theme.colors.textPrimary }], 
+          componentId: 'lyrics-mood-label' 
+        }, 'Mood'),
+        React.createElement(ScrollView, {
+          horizontal: true,
+          style: { flexGrow: 'initial' },
+          contentContainerStyle: styles.moodContainer,
+          showsHorizontalScrollIndicator: false,
+          componentId: 'lyrics-mood-scroll'
+        },
+          moods.map(function(moodOption) {
+            const isSelected = state.mood === moodOption;
+            return React.createElement(TouchableOpacity, {
+              key: moodOption,
+              style: [
+                styles.moodChip,
+                { borderColor: state.theme.colors.border },
+                isSelected ? { backgroundColor: state.theme.colors.primary } : { backgroundColor: 'transparent' }
+              ],
+              onPress: function() { state.setMood(moodOption); },
+              componentId: 'mood-chip-' + moodOption
+            },
+              React.createElement(Text, {
+                style: [
+                  styles.moodText,
+                  { color: isSelected ? '#FFFFFF' : state.theme.colors.textSecondary }
+                ],
+                componentId: 'mood-text-' + moodOption
+              }, moodOption.charAt(0).toUpperCase() + moodOption.slice(1))
+            );
+          })
+        ),
+        React.createElement(TouchableOpacity, {
+          style: [styles.generateButton, { backgroundColor: state.theme.colors.primary }],
+          onPress: function() { handlers.generateLyrics(state); },
+          disabled: state.isGenerating,
+          componentId: 'lyrics-generate-button'
+        },
+          state.isGenerating ? 
+            React.createElement(ActivityIndicator, { size: 'small', color: '#FFFFFF', componentId: 'lyrics-loading' }) :
+            React.createElement(Text, { style: styles.generateButtonText, componentId: 'lyrics-generate-text' }, 'Generate Lyrics')
+        )
+      ),
+      React.createElement(View, { 
+        style: [styles.infoCard, { backgroundColor: state.theme.colors.accent + '20', borderColor: state.theme.colors.accent }], 
+        componentId: 'lyrics-info-card' 
+      },
+        React.createElement(MaterialIcons, { name: 'info', size: 20, color: state.theme.colors.accent }),
+        React.createElement(Text, { 
+          style: [styles.infoText, { color: state.theme.colors.textSecondary }], 
+          componentId: 'lyrics-info-text' 
+        }, '✨ Paste generated lyrics into Suno AI for music generation')
+      ),
+      state.generatedLyrics.length > 0 ? React.createElement(View, { style: styles.gallerySection, componentId: 'lyrics-gallery' },
+        React.createElement(Text, { 
+          style: [styles.sectionTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'lyrics-gallery-title' 
+        }, 'Generated Lyrics'),
+        state.generatedLyrics.map(function(lyrics) {
+          return React.createElement(View, {
+            key: lyrics.id,
+            style: [styles.lyricsCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }],
+            componentId: 'lyrics-card-' + lyrics.id
+          },
+            React.createElement(View, { style: styles.lyricsHeader, componentId: 'lyrics-header-' + lyrics.id },
+              React.createElement(Text, { 
+                style: [styles.lyricsTheme, { color: state.theme.colors.primary }], 
+                componentId: 'lyrics-theme-' + lyrics.id 
+              }, lyrics.theme),
+              React.createElement(View, { 
+                style: [styles.moodBadge, { backgroundColor: state.theme.colors.accent }], 
+                componentId: 'lyrics-mood-badge-' + lyrics.id 
+              },
+                React.createElement(Text, { 
+                  style: [styles.moodBadgeText, { color: '#FFFFFF' }], 
+                  componentId: 'lyrics-mood-badge-text-' + lyrics.id 
+                }, lyrics.mood)
+              )
+            ),
+            React.createElement(Text, { 
+              style: [styles.lyricsContent, { color: state.theme.colors.textSecondary }], 
+              componentId: 'lyrics-content-' + lyrics.id 
+            }, lyrics.content),
+            React.createElement(Text, { 
+              style: [styles.imageTimestamp, { color: state.theme.colors.textSecondary }], 
+              componentId: 'lyrics-timestamp-' + lyrics.id 
+            }, new Date(lyrics.timestamp).toLocaleString())
+          );
+        })
+      ) : null
+    );
+  };
+  // @end:LyricsScreen
 
-    @keyframes neonPulse {
-      0% { text-shadow: 0 0 20px #6cf, 0 0 40px #6cf; }
-      100% { text-shadow: 0 0 30px #a6f, 0 0 60px #a6f; }
-    }
+  // @section:SettingsScreen-state @depends:[ThemeContext]
+  const useSettingsScreenState = function() {
+    const themeContext = useTheme();
+    const theme = themeContext.theme;
+    const voiceEnabledState = useState(true);
+    const voiceEnabled = voiceEnabledState[0];
+    const setVoiceEnabled = voiceEnabledState[1];
+    const languageState = useState('English');
+    const language = languageState[0];
+    const setLanguage = languageState[1];
+    
+    return {
+      theme: theme,
+      darkMode: themeContext.darkMode,
+      toggleDarkMode: themeContext.toggleDarkMode,
+      voiceEnabled: voiceEnabled,
+      setVoiceEnabled: setVoiceEnabled,
+      language: language,
+      setLanguage: setLanguage
+    };
+  };
+  // @end:SettingsScreen-state
 
-    nav a {
-      margin-left: 20px;
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s, text-shadow 0.3s;
-    }
-
-    nav a:hover {
-      color: #6cf;
-      text-shadow: 0 0 10px #6cf;
-    }
-
-    /* Hero Section */
-    .hero {
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-content {
-      text-align: center;
-      z-index: 10;
-    }
-
-    .hero-content h2 {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(40px, 8vw, 80px);
-      background: linear-gradient(45deg, #6cf, #a6f, #c4f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 30px rgba(108, 204, 255, 0.5);
-      animation: textGlow 3s ease-in-out infinite alternate;
-    }
-
-    @keyframes textGlow {
-      0% { text-shadow: 0 0 30px rgba(108, 204, 255, 0.5); }
-      100% { text-shadow: 0 0 50px rgba(166, 204, 255, 0.8); }
-    }
-
-    .hero-content p {
-      font-size: 24px;
-      margin: 20px 0;
-      opacity: 0.9;
-    }
-
-    #start-chat-btn {
-      padding: 15px 30px;
-      background: linear-gradient(45deg, #6cf, #a6f);
-      border: none;
-      border-radius: 30px;
-      color: black;
-      font-weight: bold;
-      font-size: 18px;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(108, 204, 255, 0.5);
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-
-    #start-chat-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 40px rgba(108, 204, 255, 0.8);
-    }
-
-    /* Particles Animation */
-    #particles {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .particle {
-      position: absolute;
-      background: rgba(108, 204, 255, 0.6);
-      border-radius: 50%;
-      animation: float 6s linear infinite;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
-    }
-
-    /* Features Section */
-    .features {
-      padding: 100px 40px 60px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-    }
-
-    .features h3 {
-      font-family: 'Orbitron', monospace;
-      font-size: 36px;
-      margin-bottom: 40px;
-      color: #6cf;
-      text-shadow: 0 0 15px #6cf;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-      margin-top: 30px;
-    }
-
-    .card {
-      padding: 30px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      backdrop-filter: blur(15px);
-      box-shadow: 0 0 30px rgba(108, 204, 255, 0.3);
-      transition: transform 0.3s, box-shadow 0.3s;
-      border: 1px solid rgba(108, 204, 255, 0.2);
-    }
-
-    .card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 0 50px rgba(108, 204, 255, 0.6);
-    }
-
-    .card .icon {
-      font-size: 40px;
-      margin-bottom: 15px;
-    }
-
-    .card h4 {
-      font-size: 22px;
-      margin-bottom: 10px;
-      color: #a6f;
-    }
-
-    .card p {
-      opacity: 0.8;
-    }
-
-    /* Chat Section */
-    .chat-section {
-      padding: 60px 40px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.7);
-    }
-
-    .chat-section h3 {
-      font-family: 'Orbitron', monospace;
-      font-size: 32px;
-      margin-bottom: 30px;
-      color: #6cf;
-    }
-
-    .chat-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 20px rgba(108, 204, 255, 0.3);
-    }
-
-    .chat-messages {
-      height: 300px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
-    }
-
-    .message {
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    .message.bot {
-      background: rgba(108, 204, 255, 0.2);
-      text-align: left;
-    }
-
-    .message.user {
-      background: rgba(166, 204, 255, 0.2);
-      text-align: right;
-    }
-
-    #chat-input {
-      width: 70%;
-      padding: 10px;
-      border: none;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      font-size: 16px;
-    }
-
-    #send-btn {
-      padding: 10px 20px;
-      background: linear-gradient(45deg, #6cf, #a6f);
-      border: none;
-      border-radius: 20px;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-
-    /* Lyrics Section */
-    .lyrics {
-      padding: 60px 40px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    .lyrics h3 {
-      font-family: 'Orbitron', monospace;
-      font-size: 32px;
-      margin-bottom: 20px;
-      color: #6cf;
-    }
-
-    .generate-btn {
-      padding: 15px 30px;
-      background: linear-gradient(45deg, #6cf, #a6f);
-      border: none;
-      border-radius: 30px;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(108, 204, 255, 0.5);
-      transition: transform 0.3s;
-    }
-
-    .generate-btn:hover {
-      transform: scale(1.05);
-    }
-
-    /* Footer */
-    footer {
-      padding: 20px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.8);
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .hero-content h2 { font-size: 50px; }
-      .cards { grid-template-columns: 1fr; }
-      .chat-container { max-width: 100%; }
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1 class="logo">SHIVAY</h1>
-    <nav>
-      <a href="#features">Features</a>
-      <a href="#chat">AI Chat</a>
-      <a href="#lyrics">Lyrics</a>
-    </nav>
-  </header>
-
-  <section class="hero">
-    <div class="hero-content">
-      <h2>Meet SHIVAY – Your Intelligent Future Companion</h2>
-      <p>Ask Anything. Create Everything.</p>
-      <button id="start-chat-btn">Start Chatting</button>
-    </div>
-    <div id="particles"></div> <!-- Animated background particles -->
-  </section>
-
-  <section id="features" class="features">
-    <h3>Core Capabilities</h3>
-    <div class="cards">
-      <div class="card">
-        <span class="icon">🧠</span>
-        <h4>AI Chat</h4>
-        <p>Answers all types of questions with intelligent responses.</p>
-      </div>
-      <div class="card">
-        <span class="icon">🎨</span>
-        <h4>Image Generation</h4>
-        <p>Create stunning visuals from text descriptions.</p>
-      </div>
-      <div class="card">
-        <span class="icon">🎵</span>
-        <h4>Song Lyrics Generator</h4>
-        <p>Generate creative lyrics for any genre or mood.</p>
-      </div>
-      <div class="card">
-        <span class="icon">🌍</span>
-        <h4>Multilingual Understanding</h4>
-        <p>Understands and responds in every language.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="chat" class="chat-section">
-    <h3>Interactive AI Chat</h3>
-    <div class="chat-container">
-      <div id="chat-messages" class="chat-messages">
-        <div class="message bot">Welcome to SHIVAY! How can I assist you today?</div>
-      </div>
-      <input type="text" id="chat-input" placeholder="Type your message..." />
-      <button id="send-btn">Send</button>
-    </div>
-  </section>
-
-  <section id="lyrics" class="lyrics">
-    <h3>Lyrics Generator</h3>
-    <p>Create lyrics with SHIVAY and paste them into <strong>Suno AI</strong> for music generation 🎶</p>
-    <button class="generate-btn">Generate Lyrics</button>
-  </section>
-
-  <footer>
-    <p>&copy; 2023 SHIVAY AI. Powered by advanced intelligence.</p>
-  </footer>
-
-  <script>
-    // Particle Animation for Hero Background
-    function createParticles() {
-      const particlesContainer = document.getElementById('particles');
-      for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.width = Math.random() * 10 + 5 + 'px';
-        particle.style.height = particle.style.width;
-        particle.style.animationDelay = Math.random() * 6 + 's';
-        particlesContainer.appendChild(particle);
+  // @section:SettingsScreen-handlers @depends:[SettingsScreen-state]
+  const settingsScreenHandlers = {
+    clearMemory: function() {
+      const confirmMessage = 'Are you sure you want to clear all conversation history?';
+      if (Platform.OS === 'web') {
+        if (window.confirm(confirmMessage)) {
+          window.alert('Memory cleared successfully!');
+        }
+      } else {
+        Alert.alert('Clear Memory', confirmMessage, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear', style: 'destructive', onPress: function() {
+            Alert.alert('Success', 'Memory cleared successfully!');
+          }}
+        ]);
+      }
+    },
+    
+    showLanguageOptions: function(state) {
+      const languages = ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'];
+      if (Platform.OS === 'web') {
+        const selection = window.prompt('Select Language:\n' + languages.join('\n'));
+        if (selection && languages.includes(selection)) {
+          state.setLanguage(selection);
+        }
+      } else {
+        Alert.alert('Select Language', '', languages.map(function(lang) {
+          return {
+            text: lang,
+            onPress: function() { state.setLanguage(lang); }
+          };
+        }).concat([{ text: 'Cancel', style: 'cancel' }]));
       }
     }
-    createParticles();
+  };
+  // @end:SettingsScreen-handlers
 
-    // Simple Chat Simulation
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const startChatBtn = document.getElementById('start-chat-btn');
+  // @section:SettingsScreen @depends:[SettingsScreen-state,SettingsScreen-handlers,styles]
+  const SettingsScreen = function() {
+    const state = useSettingsScreenState();
+    const handlers = settingsScreenHandlers;
+    
+    return React.createElement(ScrollView, {
+      style: [styles.screenContainer, { backgroundColor: state.theme.colors.background }],
+      contentContainerStyle: { paddingBottom: Platform.OS === 'web' ? 90 : 100 },
+      componentId: 'settings-screen'
+    },
+      React.createElement(View, { style: styles.screenHeader, componentId: 'settings-header' },
+        React.createElement(Text, { 
+          style: [styles.screenTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'settings-title' 
+        }, 'Settings'),
+        React.createElement(Text, { 
+          style: [styles.screenSubtitle, { color: state.theme.colors.textSecondary }], 
+          componentId: 'settings-subtitle' 
+        }, 'Customize your SHIVAY experience')
+      ),
+      React.createElement(View, { 
+        style: [styles.settingsCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+        componentId: 'settings-appearance-card' 
+      },
+        React.createElement(Text, { 
+          style: [styles.settingsCardTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'settings-appearance-title' 
+        }, 'Appearance'),
+        React.createElement(View, { style: styles.settingRow, componentId: 'settings-dark-mode-row' },
+          React.createElement(View, { style: styles.settingInfo, componentId: 'settings-dark-mode-info' },
+            React.createElement(Text, { 
+              style: [styles.settingTitle, { color: state.theme.colors.textPrimary }], 
+              componentId: 'settings-dark-mode-title' 
+            }, 'Dark Mode'),
+            React.createElement(Text, { 
+              style: [styles.settingDescription, { color: state.theme.colors.textSecondary }], 
+              componentId: 'settings-dark-mode-desc' 
+            }, 'Toggle cosmic dark theme')
+          ),
+          React.createElement(TouchableOpacity, {
+            style: [styles.toggleButton, state.darkMode ? { backgroundColor: state.theme.colors.primary } : { backgroundColor: state.theme.colors.border }],
+            onPress: state.toggleDarkMode,
+            componentId: 'settings-dark-mode-toggle'
+          },
+            React.createElement(View, { 
+              style: [styles.toggleKnob, state.darkMode ? { transform: [{ translateX: 20 }] } : { transform: [{ translateX: 2 }] }], 
+              componentId: 'settings-dark-mode-knob' 
+            })
+          )
+        )
+      ),
+      React.createElement(View, { 
+        style: [styles.settingsCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+        componentId: 'settings-features-card' 
+      },
+        React.createElement(Text, { 
+          style: [styles.settingsCardTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'settings-features-title' 
+        }, 'Features'),
+        React.createElement(View, { style: styles.settingRow, componentId: 'settings-voice-row' },
+          React.createElement(View, { style: styles.settingInfo, componentId: 'settings-voice-info' },
+            React.createElement(Text, { 
+              style: [styles.settingTitle, { color: state.theme.colors.textPrimary }], 
+              componentId: 'settings-voice-title' 
+            }, 'Voice Assistant'),
+            React.createElement(Text, { 
+              style: [styles.settingDescription, { color: state.theme.colors.textSecondary }], 
+              componentId: 'settings-voice-desc' 
+            }, 'Enable voice input and output')
+          ),
+          React.createElement(TouchableOpacity, {
+            style: [styles.toggleButton, state.voiceEnabled ? { backgroundColor: state.theme.colors.primary } : { backgroundColor: state.theme.colors.border }],
+            onPress: function() { state.setVoiceEnabled(function(prev) { return !prev; }); },
+            componentId: 'settings-voice-toggle'
+          },
+            React.createElement(View, { 
+              style: [styles.toggleKnob, state.voiceEnabled ? { transform: [{ translateX: 20 }] } : { transform: [{ translateX: 2 }] }], 
+              componentId: 'settings-voice-knob' 
+            })
+          )
+        ),
+        React.createElement(TouchableOpacity, {
+          style: styles.settingRow,
+          onPress: function() { handlers.showLanguageOptions(state); },
+          componentId: 'settings-language-row'
+        },
+          React.createElement(View, { style: styles.settingInfo, componentId: 'settings-language-info' },
+            React.createElement(Text, { 
+              style: [styles.settingTitle, { color: state.theme.colors.textPrimary }], 
+              componentId: 'settings-language-title' 
+            }, 'Language'),
+            React.createElement(Text, { 
+              style: [styles.settingDescription, { color: state.theme.colors.textSecondary }], 
+              componentId: 'settings-language-desc' 
+            }, 'Current: ' + state.language)
+          ),
+          React.createElement(MaterialIcons, { name: 'chevron-right', size: 24, color: state.theme.colors.textSecondary })
+        )
+      ),
+      React.createElement(View, { 
+        style: [styles.settingsCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+        componentId: 'settings-data-card' 
+      },
+        React.createElement(Text, { 
+          style: [styles.settingsCardTitle, { color: state.theme.colors.textPrimary }], 
+          componentId: 'settings-data-title' 
+        }, 'Data Management'),
+        React.createElement(TouchableOpacity, {
+          style: styles.settingRow,
+          onPress: handlers.clearMemory,
+          componentId: 'settings-clear-memory-row'
+        },
+          React.createElement(View, { style: styles.settingInfo, componentId: 'settings-clear-memory-info' },
+            React.createElement(Text, { 
+              style: [styles.settingTitle, { color: state.theme.colors.error }], 
+              componentId: 'settings-clear-memory-title' 
+            }, 'Clear Memory'),
+            React.createElement(Text, { 
+              style: [styles.settingDescription, { color: state.theme.colors.textSecondary }], 
+              componentId: 'settings-clear-memory-desc' 
+            }, 'Delete all conversation history')
+          ),
+          React.createElement(MaterialIcons, { name: 'delete', size: 24, color: state.theme.colors.error })
+        )
+      ),
+      React.createElement(View, { 
+        style: [styles.aboutCard, { backgroundColor: state.theme.colors.card, borderColor: state.theme.colors.border }], 
+        componentId: 'settings-about-card' 
+      },
+        React.createElement(Text, { 
+          style: [styles.aboutTitle, { color: state.theme.colors.primary }], 
+          componentId: 'settings-about-title' 
+        }, 'SHIVAY'),
+        React.createElement(Text, { 
+          style: [styles.aboutSubtitle, { color: state.theme.colors.textSecondary }], 
+          componentId: 'settings-about-subtitle' 
+        }, 'Smart Holistic Intelligent Virtual Assistant for You'),
+        React.createElement(Text, { 
+          style: [styles.aboutVersion, { color: state.theme.colors.textSecondary }], 
+          componentId: 'settings-about-version' 
+        }, 'Ask Anything. Create Everything.'),
+        React.createElement(Text, { 
+          style: [styles.aboutVersion, { color: state.theme.colors.textSecondary }], 
+          componentId: 'settings-about-tagline' 
+        }, 'Version 1.0.0')
+      )
+    );
+  };
+  // @end:SettingsScreen
 
-    function addMessage(text, sender) {
-      const message = document.createElement('div');
-      message.className = `message ${sender}`;
-      message.textContent = text;
-      chatMessages.appendChild(message);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+  // @section:HomeScreen-orb @depends:[styles]
+  const renderHolographicOrb = function(theme) {
+    const rotationState = useState(new Animated.Value(0));
+    const rotation = rotationState[0];
+    
+    useEffect(function() {
+      const startRotation = function() {
+        Animated.loop(
+          Animated.timing(rotation, {
+            toValue: 1,
+            duration: 8000,
+            useNativeDriver: true
+          })
+        ).start();
+      };
+      startRotation();
+    }, [rotation]);
+    
+    const rotateInterpolation = rotation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg']
+    });
+    
+    return React.createElement(View, { style: styles.orbContainer, componentId: 'home-orb-container' },
+      React.createElement(Animated.View, {
+        style: [
+          styles.holographicOrb,
+          { 
+            backgroundColor: theme.colors.primary + '40',
+            borderColor: theme.colors.primary,
+            transform: [{ rotate: rotateInterpolation }]
+          }
+        ],
+        componentId: 'home-holographic-orb'
+      },
+        React.createElement(View, { 
+          style: [styles.orbCore, { backgroundColor: theme.colors.primary }], 
+          componentId: 'home-orb-core' 
+        }),
+        React.createElement(View, { 
+          style: [styles.orbRing, { borderColor: theme.colors.accent }], 
+          componentId: 'home-orb-ring-1' 
+        }),
+        React.createElement(View, { 
+          style: [styles.orbRing, styles.orbRingSecondary, { borderColor: theme.colors.primary }], 
+          componentId: 'home-orb-ring-2' 
+        })
+      )
+    );
+  };
+  // @end:HomeScreen-orb
+
+  // @section:HomeScreen @depends:[HomeScreen-orb,styles]
+  const HomeScreen = function() {
+    const themeContext = useTheme();
+    const theme = themeContext.theme;
+    
+    return React.createElement(ScrollView, {
+      style: [styles.screenContainer, { backgroundColor: theme.colors.background }],
+      contentContainerStyle: { paddingBottom: Platform.OS === 'web' ? 90 : 100 },
+      componentId: 'home-screen'
+    },
+      React.createElement(View, { style: styles.homeHeader, componentId: 'home-header' },
+        React.createElement(Text, { 
+          style: [styles.logoTitle, { color: theme.colors.primary }], 
+          componentId: 'home-logo' 
+        }, 'SHIVAY'),
+        React.createElement(Text, { 
+          style: [styles.logoSubtitle, { color: theme.colors.textSecondary }], 
+          componentId: 'home-subtitle' 
+        }, 'Smart Holistic Intelligent Virtual Assistant for You')
+      ),
+      renderHolographicOrb(theme),
+      React.createElement(View, { style: styles.welcomeSection, componentId: 'home-welcome' },
+        React.createElement(Text, { 
+          style: [styles.welcomeTitle, { color: theme.colors.textPrimary }], 
+          componentId: 'home-welcome-title' 
+        }, 'Meet SHIVAY'),
+        React.createElement(Text, { 
+          style: [styles.welcomeText, { color: theme.colors.textSecondary }], 
+          componentId: 'home-welcome-text' 
+        }, 'Your intelligent future companion. Experience the power of AI through intuitive conversation, creative image generation, and lyrical inspiration.')
+      ),
+      React.createElement(View, { style: styles.featuresGrid, componentId: 'home-features' },
+        React.createElement(View, { 
+          style: [styles.featureCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }], 
+          componentId: 'home-feature-chat' 
+        },
+          React.createElement(MaterialIcons, { name: 'chat', size: 32, color: theme.colors.primary }),
+          React.createElement(Text, { 
+            style: [styles.featureTitle, { color: theme.colors.textPrimary }], 
+            componentId: 'home-feature-chat-title' 
+          }, 'AI Chat'),
+          React.createElement(Text, { 
+            style: [styles.featureDescription, { color: theme.colors.textSecondary }], 
+            componentId: 'home-feature-chat-desc' 
+          }, 'Intelligent conversations with context awareness')
+        ),
+        React.createElement(View, { 
+          style: [styles.featureCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }], 
+          componentId: 'home-feature-images' 
+        },
+          React.createElement(MaterialIcons, { name: 'image', size: 32, color: theme.colors.accent }),
+          React.createElement(Text, { 
+            style: [styles.featureTitle, { color: theme.colors.textPrimary }], 
+            componentId: 'home-feature-images-title' 
+          }, 'AI Images'),
+          React.createElement(Text, { 
+            style: [styles.featureDescription, { color: theme.colors.textSecondary }], 
+            componentId: 'home-feature-images-desc' 
+          }, 'Generate stunning visuals from text prompts')
+        ),
+        React.createElement(View, { 
+          style: [styles.featureCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }], 
+          componentId: 'home-feature-lyrics' 
+        },
+          React.createElement(MaterialIcons, { name: 'music-note', size: 32, color: theme.colors.primary }),
+          React.createElement(Text, { 
+            style: [styles.featureTitle, { color: theme.colors.textPrimary }], 
+            componentId: 'home-feature-lyrics-title' 
+          }, 'AI Lyrics'),
+          React.createElement(Text, { 
+            style: [styles.featureDescription, { color: theme.colors.textSecondary }], 
+            componentId: 'home-feature-lyrics-desc' 
+          }, 'Create original songs with mood themes')
+        )
+      ),
+      React.createElement(View, { 
+        style: [styles.taglineCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }], 
+        componentId: 'home-tagline-card' 
+      },
+        React.createElement(Text, { 
+          style: [styles.taglineText, { color: theme.colors.primary }], 
+          componentId: 'home-tagline' 
+        }, 'Ask Anything. Create Everything.')
+      )
+    );
+  };
+  // @end:HomeScreen
+
+  // @section:styles @depends:[theme]
+  const styles = StyleSheet.create({
+    screenContainer: {
+      flex: 1,
+      paddingHorizontal: 16
+    },
+    screenHeader: {
+      paddingTop: 60,
+      paddingBottom: 24,
+      alignItems: 'center'
+    },
+    screenTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      marginBottom: 8
+    },
+    screenSubtitle: {
+      fontSize: 16,
+      textAlign: 'center',
+      marginBottom: 8
+    },
+    homeHeader: {
+      alignItems: 'center',
+      paddingTop: 60,
+      paddingBottom: 24
+    },
+    logoTitle: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      letterSpacing: 2,
+      marginBottom: 8,
+      textShadowColor: primaryColor + '80',
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 10
+    },
+    logoSubtitle: {
+      fontSize: 14,
+      textAlign: 'center',
+      paddingHorizontal: 24
+    },
+    orbContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: 40
+    },
+    holographicOrb: {
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: primaryColor,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.8,
+      shadowRadius: 20,
+      elevation: 20
+    },
+    orbCore: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      position: 'absolute'
+    },
+    orbRing: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      borderWidth: 1,
+      position: 'absolute'
+    },
+    orbRingSecondary: {
+      width: 120,
+      height: 120,
+      borderRadius: 60
+    },
+    welcomeSection: {
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      marginBottom: 32
+    },
+    welcomeTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 12
+    },
+    welcomeText: {
+      fontSize: 16,
+      textAlign: 'center',
+      lineHeight: 24
+    },
+    featuresGrid: {
+      marginBottom: 32
+    },
+    featureCard: {
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4
+    },
+    featureTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginTop: 12,
+      marginBottom: 8
+    },
+    featureDescription: {
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20
+    },
+    taglineCard: {
+      borderRadius: 16,
+      borderWidth: 2,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 32
+    },
+    taglineText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      textAlign: 'center'
+    },
+    chatHeader: {
+      paddingTop: 60,
+      paddingBottom: 20,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255, 255, 255, 0.1)'
+    },
+    aiIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8
+    },
+    aiDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginRight: 8
+    },
+    aiText: {
+      fontSize: 14,
+      fontWeight: '500'
+    },
+    chatList: {
+      flex: 1,
+      paddingHorizontal: 16
+    },
+    messageContainer: {
+      marginVertical: 8,
+      maxWidth: '80%'
+    },
+    userMessageContainer: {
+      alignSelf: 'flex-end'
+    },
+    aiMessageContainer: {
+      alignSelf: 'flex-start'
+    },
+    messageBubble: {
+      borderRadius: 20,
+      padding: 16
+    },
+    userBubble: {
+      borderBottomRightRadius: 4
+    },
+    aiBubble: {
+      borderWidth: 1,
+      borderBottomLeftRadius: 4
+    },
+    messageText: {
+      fontSize: 16,
+      lineHeight: 22
+    },
+    timestampText: {
+      fontSize: 12,
+      marginTop: 8,
+      opacity: 0.7
+    },
+    typingIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: 16,
+      marginBottom: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 20,
+      alignSelf: 'flex-start'
+    },
+    typingText: {
+      fontSize: 14,
+      marginRight: 12
+    },
+    chatInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      margin: 16,
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 12
+    },
+    chatInput: {
+      flex: 1,
+      fontSize: 16,
+      maxHeight: 100,
+      paddingHorizontal: 4,
+      paddingVertical: 8
+    },
+    sendButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 12
+    },
+    generatorCard: {
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 20,
+      marginBottom: 24
+    },
+    promptInput: {
+      borderRadius: 16,
+      borderWidth: 1,
+      padding: 16,
+      fontSize: 16,
+      textAlignVertical: 'top',
+      marginBottom: 16
+    },
+    generateButton: {
+      borderRadius: 16,
+      padding: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 54
+    },
+    generateButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: 'bold'
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 12
+    },
+    moodContainer: {
+      paddingVertical: 8,
+      paddingRight: 16
+    },
+    moodChip: {
+      borderRadius: 20,
+      borderWidth: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      marginRight: 12
+    },
+    moodText: {
+      fontSize: 14,
+      fontWeight: '500'
+    },
+    infoCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: 16,
+      borderWidth: 1,
+      padding: 16,
+      marginBottom: 24
+    },
+    infoText: {
+      fontSize: 14,
+      marginLeft: 12,
+      flex: 1,
+      lineHeight: 20
+    },
+    gallerySection: {
+      marginBottom: 32
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 16
+    },
+    imageCard: {
+      borderRadius: 16,
+      borderWidth: 1,
+      marginBottom: 16,
+      overflow: 'hidden'
+    },
+    generatedImage: {
+      width: '100%',
+      height: 200
+    },
+    imagePrompt: {
+      fontSize: 16,
+      fontWeight: '600',
+      padding: 16,
+      paddingBottom: 8
+    },
+    imageTimestamp: {
+      fontSize: 12,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      opacity: 0.7
+    },
+    lyricsCard: {
+      borderRadius: 16,
+      borderWidth: 1,
+      padding: 20,
+      marginBottom: 16
+    },
+    lyricsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16
+    },
+    lyricsTheme: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      flex: 1
+    },
+    moodBadge: {
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 4
+    },
+    moodBadgeText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      textTransform: 'uppercase'
+    },
+    lyricsContent: {
+      fontSize: 14,
+      lineHeight: 20,
+      marginBottom: 12
+    },
+    settingsCard: {
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 20,
+      marginBottom: 16
+    },
+    settingsCardTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 16
+    },
+    settingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12
+    },
+    settingInfo: {
+      flex: 1
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 4
+    },
+    settingDescription: {
+      fontSize: 14,
+      lineHeight: 18
+    },
+    toggleButton: {
+      width: 48,
+      height: 28,
+      borderRadius: 14,
+      justifyContent: 'center',
+      paddingHorizontal: 2
+    },
+    toggleKnob: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: '#FFFFFF'
+    },
+    aboutCard: {
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 24,
+      alignItems: 'center',
+      marginBottom: 32
+    },
+    aboutTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 8
+    },
+    aboutSubtitle: {
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 12
+    },
+    aboutVersion: {
+      fontSize: 12,
+      textAlign: 'center',
+      marginTop: 4
     }
+  });
+  // @end:styles
 
-    sendBtn.addEventListener('click', () => {
-      const userMessage = chatInput.value.trim();
-      if (userMessage) {
-        addMessage(userMessage, 'user');
-        chatInput.value = '';
-        // Simulate AI response
-        setTimeout(() => {
-          addMessage('SHIVAY: That\'s an interesting question! Let me think...', 'bot');
-        }, 1000);
+  // @section:TabNavigator @depends:[ChatScreen,ImagesScreen,LyricsScreen,SettingsScreen,HomeScreen,navigation-setup]
+  const TabNavigator = function() {
+    const themeContext = useTheme();
+    const theme = themeContext.theme;
+    
+    return React.createElement(Tab.Navigator, {
+      screenOptions: function() {
+        return {
+          headerShown: false,
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: 0,
+            backgroundColor: theme.colors.card,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+            height: Platform.OS === 'web' ? 80 : 90,
+            paddingBottom: Platform.OS === 'web' ? 10 : 20,
+            paddingTop: 10
+          },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textSecondary,
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600'
+          }
+        };
       }
-    });
+    },
+      React.createElement(Tab.Screen, {
+        name: 'Home',
+        component: HomeScreen,
+        options: {
+          tabBarIcon: function(props) {
+            return React.createElement(MaterialIcons, {
+              name: 'home',
+              size: 24,
+              color: props.color
+            });
+          }
+        }
+      }),
+      React.createElement(Tab.Screen, {
+        name: 'Chat',
+        component: ChatScreen,
+        options: {
+          tabBarIcon: function(props) {
+            return React.createElement(MaterialIcons, {
+              name: 'chat',
+              size: 24,
+              color: props.color
+            });
+          }
+        }
+      }),
+      React.createElement(Tab.Screen, {
+        name: 'Images',
+        component: ImagesScreen,
+        options: {
+          tabBarIcon: function(props) {
+            return React.createElement(MaterialIcons, {
+              name: 'image',
+              size: 24,
+              color: props.color
+            });
+          }
+        }
+      }),
+      React.createElement(Tab.Screen, {
+        name: 'Lyrics',
+        component: LyricsScreen,
+        options: {
+          tabBarIcon: function(props) {
+            return React.createElement(MaterialIcons, {
+              name: 'music-note',
+              size: 24,
+              color: props.color
+            });
+          }
+        }
+      }),
+      React.createElement(Tab.Screen, {
+        name: 'Settings',
+        component: SettingsScreen,
+        options: {
+          tabBarIcon: function(props) {
+            return React.createElement(MaterialIcons, {
+              name: 'settings',
+              size: 24,
+              color: props.color
+            });
+          }
+        }
+      })
+    );
+  };
+  // @end:TabNavigator
 
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendBtn.click();
-    });
-
-    startChatBtn.addEventListener('click', () => {
-      document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });
-    });
-  </script>
-</body>
-</html>
+  // @section:return @depends:[ThemeProvider,TabNavigator]
+  return React.createElement(ThemeProvider, null,
+    React.createElement(View, { style: { flex: 1, width: '100%', height: '100%', overflow: 'hidden' }, componentId: 'root-container' },
+      React.createElement(StatusBar, { barStyle: 'light-content', backgroundColor: backgroundColor }),
+      React.createElement(TabNavigator)
+    )
+  );
+  // @end:return
+};
+return ComponentFunctio
