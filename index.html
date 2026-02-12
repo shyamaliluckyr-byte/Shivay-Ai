@@ -3,8 +3,312 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SHIVAY AI</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>SHIVAY AI - Your Intelligent Future Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500&display=swap" rel="stylesheet">
+  <style>
+    /* Futuristic Fonts and Base Styles */
+    body {
+      margin: 0;
+      font-family: 'Rajdhani', sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a40 50%, #000 100%);
+      color: white;
+      overflow-x: hidden;
+      animation: backgroundGlow 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes backgroundGlow {
+      0% { background: linear-gradient(135deg, #0a0a0f 0%, #1a1a40 50%, #000 100%); }
+      100% { background: linear-gradient(135deg, #0a0a0f 0%, #2a2a60 50%, #000 100%); }
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(108, 204, 255, 0.3);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      color: #6cf;
+      text-shadow: 0 0 20px #6cf, 0 0 40px #6cf;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes neonPulse {
+      0% { text-shadow: 0 0 20px #6cf, 0 0 40px #6cf; }
+      100% { text-shadow: 0 0 30px #a6f, 0 0 60px #a6f; }
+    }
+
+    nav a {
+      margin-left: 20px;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    nav a:hover {
+      color: #6cf;
+      text-shadow: 0 0 10px #6cf;
+    }
+
+    /* Hero Section */
+    .hero {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      text-align: center;
+      z-index: 10;
+    }
+
+    .hero-content h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(40px, 8vw, 80px);
+      background: linear-gradient(45deg, #6cf, #a6f, #c4f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(108, 204, 255, 0.5);
+      animation: textGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes textGlow {
+      0% { text-shadow: 0 0 30px rgba(108, 204, 255, 0.5); }
+      100% { text-shadow: 0 0 50px rgba(166, 204, 255, 0.8); }
+    }
+
+    .hero-content p {
+      font-size: 24px;
+      margin: 20px 0;
+      opacity: 0.9;
+    }
+
+    #start-chat-btn {
+      padding: 15px 30px;
+      background: linear-gradient(45deg, #6cf, #a6f);
+      border: none;
+      border-radius: 30px;
+      color: black;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(108, 204, 255, 0.5);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    #start-chat-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px rgba(108, 204, 255, 0.8);
+    }
+
+    /* Particles Animation */
+    #particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(108, 204, 255, 0.6);
+      border-radius: 50%;
+      animation: float 6s linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+    }
+
+    /* Features Section */
+    .features {
+      padding: 100px 40px 60px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .features h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 36px;
+      margin-bottom: 40px;
+      color: #6cf;
+      text-shadow: 0 0 15px #6cf;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .card {
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 0 30px rgba(108, 204, 255, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border: 1px solid rgba(108, 204, 255, 0.2);
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 50px rgba(108, 204, 255, 0.6);
+    }
+
+    .card .icon {
+      font-size: 40px;
+      margin-bottom: 15px;
+    }
+
+    .card h4 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      color: #a6f;
+    }
+
+    .card p {
+      opacity: 0.8;
+    }
+
+    /* Chat Section */
+    .chat-section {
+      padding: 60px 40px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    .chat-section h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 32px;
+      margin-bottom: 30px;
+      color: #6cf;
+    }
+
+    .chat-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(108, 204, 255, 0.3);
+    }
+
+    .chat-messages {
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .message.bot {
+      background: rgba(108, 204, 255, 0.2);
+      text-align: left;
+    }
+
+    .message.user {
+      background: rgba(166, 204, 255, 0.2);
+      text-align: right;
+    }
+
+    #chat-input {
+      width: 70%;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 16px;
+    }
+
+    #send-btn {
+      padding: 10px 20px;
+      background: linear-gradient(45deg, #6cf, #a6f);
+      border: none;
+      border-radius: 20px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    /* Lyrics Section */
+    .lyrics {
+      padding: 60px 40px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .lyrics h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #6cf;
+    }
+
+    .generate-btn {
+      padding: 15px 30px;
+      background: linear-gradient(45deg, #6cf, #a6f);
+      border: none;
+      border-radius: 30px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(108, 204, 255, 0.5);
+      transition: transform 0.3s;
+    }
+
+    .generate-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Footer */
+    footer {
+      padding: 20px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.8);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-content h2 { font-size: 50px; }
+      .cards { grid-template-columns: 1fr; }
+      .chat-container { max-width: 100%; }
+    }
+  </style>
 </head>
 <body>
 
@@ -19,26 +323,109 @@
 
   <section class="hero">
     <div class="hero-content">
-      <h2>Meet SHIVAY</h2>
-      <p>Your Intelligent Future Companion</p>
-      <button>Start Chatting</button>
+      <h2>Meet SHIVAY – Your Intelligent Future Companion</h2>
+      <p>Ask Anything. Create Everything.</p>
+      <button id="start-chat-btn">Start Chatting</button>
     </div>
+    <div id="particles"></div> <!-- Animated background particles -->
   </section>
 
   <section id="features" class="features">
     <h3>Core Capabilities</h3>
     <div class="cards">
-      <div class="card">🧠 AI Chat – Answers Anything</div>
-      <div class="card">🎨 Image Generation</div>
-      <div class="card">🎵 Lyrics Generator</div>
-      <div class="card">🌍 Understands Every Language</div>
+      <div class="card">
+        <span class="icon">🧠</span>
+        <h4>AI Chat</h4>
+        <p>Answers all types of questions with intelligent responses.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🎨</span>
+        <h4>Image Generation</h4>
+        <p>Create stunning visuals from text descriptions.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🎵</span>
+        <h4>Song Lyrics Generator</h4>
+        <p>Generate creative lyrics for any genre or mood.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🌍</span>
+        <h4>Multilingual Understanding</h4>
+        <p>Understands and responds in every language.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="chat" class="chat-section">
+    <h3>Interactive AI Chat</h3>
+    <div class="chat-container">
+      <div id="chat-messages" class="chat-messages">
+        <div class="message bot">Welcome to SHIVAY! How can I assist you today?</div>
+      </div>
+      <input type="text" id="chat-input" placeholder="Type your message..." />
+      <button id="send-btn">Send</button>
     </div>
   </section>
 
   <section id="lyrics" class="lyrics">
     <h3>Lyrics Generator</h3>
-    <p>Create lyrics with SHIVAY and paste them into <b>Suno AI</b> for music generation 🎶</p>
+    <p>Create lyrics with SHIVAY and paste them into <strong>Suno AI</strong> for music generation 🎶</p>
+    <button class="generate-btn">Generate Lyrics</button>
   </section>
 
+  <footer>
+    <p>&copy; 2023 SHIVAY AI. Powered by advanced intelligence.</p>
+  </footer>
+
+  <script>
+    // Particle Animation for Hero Background
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.width = Math.random() * 10 + 5 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+    createParticles();
+
+    // Simple Chat Simulation
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const startChatBtn = document.getElementById('start-chat-btn');
+
+    function addMessage(text, sender) {
+      const message = document.createElement('div');
+      message.className = `message ${sender}`;
+      message.textContent = text;
+      chatMessages.appendChild(message);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', () => {
+      const userMessage = chatInput.value.trim();
+      if (userMessage) {
+        addMessage(userMessage, 'user');
+        chatInput.value = '';
+        // Simulate AI response
+        setTimeout(() => {
+          addMessage('SHIVAY: That\'s an interesting question! Let me think...', 'bot');
+        }, 1000);
+      }
+    });
+
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendBtn.click();
+    });
+
+    startChatBtn.addEventListener('click', () => {
+      document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
 </body>
 </html>
